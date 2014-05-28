@@ -1,6 +1,32 @@
 # Pry::Macro
 
-TODO: Write a gem description
+Record command line actions for replaying.
+
+## How is this different from play and history?
+
+You can dynamically make your own command sets and have them saved for
+later.
+
+## Why?
+
+* Cycling next to check a variable or content? Macro it.
+* Repeating yourself for a workflow? Macro it.
+* Auto retry after edits? Macro it.
+* Error? Get the source, the stacktrace, and post it? Macro it.
+* Going to Google that error? Fetch the error message, and Macro it.
+* Someone wrote a bad method? Git blame, irc bot, and Macro it.
+* Clever code? Shoot it to hubot to karma that person, and Macro it.
+
+The possibilities here are endless. Make your own command sets as you
+REPL along from what you've already written.
+
+## Auto Pilot
+
+Want to "live code" for a presentation? Set it on auto-pilot and let it
+code itself. Define a keystroke to "type" the next command and watch it
+go.
+
+Why risk it when you can make it look like you're coding?
 
 ## Installation
 
