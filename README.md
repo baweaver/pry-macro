@@ -1,4 +1,4 @@
-# Pry::Macro
+# PryMacro
 
 Record command line actions for replaying.
 
