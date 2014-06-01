@@ -7,7 +7,7 @@ Record command line actions for replaying.
 You can dynamically make your own command sets and have them saved for
 later, as well as use pry commands.
 
-## Usage
+## Basic Usage
 
 Start recording:
 
@@ -42,7 +42,7 @@ locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
 Like it? You can save it and have it automatically append to your PryRC:
 
 ```ruby
-[10] pry(main)> save_macro testing
+[10] pry(main)> save-macro testing
 ```
 
 ...and here it is, nice and formatted:
@@ -59,6 +59,10 @@ Pry::Commands.block_command 'testing', 'no description' do
 end
 ```
 
+## More Advanced Usage
+
+We're working on getting the Wiki up to date to cover more advanced usage.
+
 ## Why?
 
 * Cycling next to check a variable or content? Macro it.
@@ -73,16 +77,6 @@ The possibilities here are endless. Make your own command sets as you
 REPL along from what you've already written.
 
 ## To do
-
-This is alpha, but works solidly for basic tasks.
-
-Currently planning on adding options to the ``save_macro``:
-
-```
--p --path : path to save in
--n --name : name of the command (override)
--d --desc : description of the command
-```
 
 Next step is finding out how to properly test Pry and getting RSPEC written up for this.
 
