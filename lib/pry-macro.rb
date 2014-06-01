@@ -1,10 +1,10 @@
-require "pry/macro/version"
+require "pry-macro/version"
 require 'highline/import'
 require 'pry'
 
-MacroString = Struct.new(:name, :command)
-
 module PryMacro
+  MacroString = Struct.new(:name, :command)
+
   Commands = Pry::CommandSet.new do
     create_command 'record', 'Starts a recording session' do
       def process
@@ -34,17 +34,30 @@ module PryMacro
           Pry.history
              .to_a
              .last(session_end - session_begin - 1)
-             .reduce(StringIO.new) { |io, item| io.puts item }
+             .reduce(StringIO.new) { |io, item| io.puts(item); io }
 
         # Have to have a name to execute this later
         @name = ask('Macro Name: ')
       end
 
       def process
-        # Save the command into a string
-        command_string = "Pry::Commands.block_command '#{@name}', 'no description' do" +
-                         "  _pry_.input = StringIO.new(#{@history.string})" +
-                         "end"
+        history_lines = @history.string.lines.map { |s| "      #{s}"}.join.chomp.tap { |h|
+          h.sub!(/^ {6}/,'') # First line won't need the spacing
+        }
+
+        # Save the command into a string, and make it look decent
+        # Tinge of a heredocs hack
+        command_string = <<-COMMAND_STRING.gsub(/^ {10}/, '')
+          Pry::Commands.block_command '#{@name}', 'no description' do
+            _pry_.input = StringIO.new(
+              <<-MACRO.gsub(/^ {4,6}/, '')
+                #{history_lines}
+              MACRO
+            )
+          end
+        COMMAND_STRING
+
+        puts command_string
 
         # ...so that we can save the contents for saving later (optional)
         _pry_.macro_strings << MacroString.new(@name, command_string)
@@ -53,12 +66,20 @@ module PryMacro
       end
     end
 
-    create_command 'save_macro', 'Saves a named macro to your .pryrc file on the tail end' do |name|
-      def setup
-        @macro = _pry_.macro_strings.find(-> { raise "Command #{name} not found!" }) { |macro| macro.name == name }
+    create_command 'save_macro', 'Saves a named macro to your .pryrc file on the tail end' do
+      def options(opt)
+        # Options for later:
+        # -p --path : path to save in
+        # -n --name : name of the command (override)
+        # -d --desc : description of the command
       end
 
       def process
+        raise 'No Macros are defined!' unless _pry_.instance_variable_defined?(:@macro_strings)
+        @macro = _pry_.macro_strings.find(
+          -> { raise "Command #{args.first} not found!" } # If nothing is found, raise the error
+        ) { |macro| macro.name == args.first }
+
         # Append the Pryrc with the macro, leaving blank lines
         File.open(File.join(Dir.home, '.pryrc'), 'a') { |f| f.puts '', @macro.command, '' }
       end
@@ -66,4 +87,4 @@ module PryMacro
   end
 end
 
-Pry::Commands.import PryMacro::Commands
+Pry.commands.import PryMacro::Commands

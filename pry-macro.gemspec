@@ -9,7 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Brandon Weaver"]
   spec.email         = ["keystonelemur@gmail.com"]
   spec.summary       = %q{Macros for Pry}
-  spec.homepage      = ""
+  spec.description   = %q{Macro Recording and Saving functionality for pry}
+  spec.homepage      = "https://github.com/baweaver/pry-macro"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

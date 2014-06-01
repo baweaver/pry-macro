@@ -5,7 +5,59 @@ Record command line actions for replaying.
 ## How is this different from play and history?
 
 You can dynamically make your own command sets and have them saved for
-later.
+later, as well as use pry commands.
+
+## Usage
+
+Start recording:
+
+```ruby
+[1] pry(main)> record
+[2] pry(main)> 1
+=> 1
+[3] pry(main)> 'foo'
+=> "foo"
+[4] pry(main)> ls
+self.methods: inspect  to_s
+locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
+```
+
+Stop the recording and name it:
+
+```ruby
+[5] pry(main)> stop
+Macro Name: testing
+```
+
+Run it like any other command:
+
+```ruby
+[6] pry(main)> testing
+=> 1
+=> "foo"
+self.methods: inspect  to_s
+locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
+```
+
+Like it? You can save it and have it automatically append to your PryRC:
+
+```ruby
+[10] pry(main)> save_macro testing
+```
+
+...and here it is, nice and formatted:
+
+```ruby
+Pry::Commands.block_command 'testing', 'no description' do
+  _pry_.input = StringIO.new(
+    <<-MACRO.gsub(/^ {4,6}/, '')
+      1
+      'foo'
+      ls
+    MACRO
+  )
+end
+```
 
 ## Why?
 
@@ -20,13 +72,19 @@ later.
 The possibilities here are endless. Make your own command sets as you
 REPL along from what you've already written.
 
-## Auto Pilot
+## To do
 
-Want to "live code" for a presentation? Set it on auto-pilot and let it
-code itself. Define a keystroke to "type" the next command and watch it
-go.
+This is alpha, but works solidly for basic tasks.
 
-Why risk it when you can make it look like you're coding?
+Currently planning on adding options to the ``save_macro``:
+
+```
+-p --path : path to save in
+-n --name : name of the command (override)
+-d --desc : description of the command
+```
+
+Next step is finding out how to properly test Pry and getting RSPEC written up for this.
 
 ## Installation
 
@@ -42,13 +100,10 @@ Or install it yourself as:
 
     $ gem install pry-macro
 
-## Usage
-
-TODO: Write usage instructions here
 
 ## Contributing
 
-1. Fork it ( http://github.com/<my-github-username>/pry-macro/fork )
+1. Fork it ( http://github.com/baweaver/pry-macro/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
