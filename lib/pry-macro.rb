@@ -83,7 +83,7 @@ module PryMacro
         puts command_string if opts[:v]
 
         # ...so that we can save the contents for saving later (optional)
-        _pry_.macro_strings << MacroString.new(@name, command_string)
+        _pry_.macro_strings << MacroString.new(name, command_string)
         # ...as well as evaluating it and making it immediately usable to us.
         eval command_string
       end
