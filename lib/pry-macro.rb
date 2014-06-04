@@ -6,9 +6,9 @@ module PryMacro
   MacroString = Struct.new(:name, :command)
 
   Commands = Pry::CommandSet.new do
-    create_command 'record', 'Starts a recording session' do
+    create_command 'record-macro', 'Starts a recording session' do
       banner <<-BANNER
-        Usage: record
+        Usage: record-macro
 
         Starts recording a macro.
       BANNER
@@ -26,9 +26,9 @@ module PryMacro
       end
     end
 
-    create_command 'stop', 'Stops a recording session, and saves a macro' do
+    create_command 'stop-macro', 'Stops a recording session, and saves a macro' do
       banner <<-BANNER
-        Usage: stop [-n name] [-d desc]
+        Usage: stop-macro [-n name] [-d desc]
 
         Stops recording a macro, loads the command, and caches it for later saving if
         desired. If no name is provided, user will be prompted for one. Descriptions 

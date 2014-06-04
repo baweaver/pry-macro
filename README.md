@@ -12,7 +12,7 @@ later, as well as use pry commands.
 Start recording:
 
 ```ruby
-[1] pry(main)> record
+[1] pry(main)> record-macro
 [2] pry(main)> 1
 => 1
 [3] pry(main)> 'foo'
@@ -25,7 +25,7 @@ locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
 Stop the recording and name it:
 
 ```ruby
-[5] pry(main)> stop
+[5] pry(main)> stop-macro
 Macro Name: testing
 ```
 
