@@ -25,6 +25,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
 
   spec.add_runtime_dependency "pry"
-  spec.add_runtime_dependency "pry-plus"
   spec.add_runtime_dependency 'highline'
 end

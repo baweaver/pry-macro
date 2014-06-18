@@ -1,5 +1,9 @@
 # Changelog
 
+## v 1.0.1 - Bug fix
+
+Removed dependency on pry-plus
+
 ## v 1.0.0
 
 Changed names to prevent collisions:
