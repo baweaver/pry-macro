@@ -1,76 +1,79 @@
 require "pry-macro/version"
-require 'highline/import'
 require 'pry'
 
 module PryMacro
   MacroString = Struct.new(:name, :command)
 
-  Commands = Pry::CommandSet.new do
-    create_command 'record-macro', 'Starts a recording session' do
-      banner <<-BANNER
-        Usage: record-macro
+  Pry::Commands.create_command 'macro-start' do
+    def options(opts)
+      opts.banner <<-BANNER
+      Starts recording a macro.
 
-        Starts recording a macro.
-      BANNER
+      Usage: macro-start name [-d desc], [-v]
 
-      def process
-        # Define a few extra ivars on the current pry session so we can persist some state to use
-        unless _pry_.instance_variable_defined?(:@record_stack)
-          _pry_.instance_variable_set(:@record_stack, [])
-          _pry_.instance_variable_set(:@macro_strings, [])
-          _pry_.class.class_eval 'attr_accessor :record_stack, :macro_strings'
-        end
-
-        # By using a stack we can potentially have multiple sessions going. Use at your own peril though...
-        _pry_.record_stack << Pry.history.session_line_count
-      end
+      Starts recording a macro, have to provide a macro name to be execute as command later.
+      Descriptions may be provided, but will default to 'no description'.
+    BANNER
+      opts.on :d, :desc, "Description of the macro.",
+        optional_argument: true, as: String
+      opts.on :v, :verbose, "Echoes back the macro definition."
     end
 
-    create_command 'stop-macro', 'Stops a recording session, and saves a macro' do
-      banner <<-BANNER
-        Usage: stop-macro [-n name] [-d desc]
+    def process
+      raise Pry::CommandError, "The command '#{command_name}' must specify macro name!" if args.empty?
 
-        Stops recording a macro, loads the command, and caches it for later saving if
-        desired. If no name is provided, user will be prompted for one. Descriptions 
-        may be provided, but will default to 'no description'
+      # Define a few extra ivars on the current pry session so we can persist some state to use
+      unless _pry_.instance_variable_defined?(:@record_stack)
+        _pry_.class.class_eval 'attr_accessor :record_stack, :macro_strings, :pry_macro_options', __FILE__, __LINE__
+        _pry_.record_stack = []
+        _pry_.macro_strings = []
+        _pry_.pry_macro_options = {name: args.first, desc: opts[:desc], verbose: opts[:verbose]}
+      end
+
+      # By using a stack we can potentially have multiple sessions going. Use at your own peril though...
+      _pry_.record_stack << Pry.history.session_line_count
+    end
+  end
+
+  Pry.commands.create_command 'macro-stop' do
+    def options(opts)
+      opts.banner <<-BANNER
+        Stops recording macro.
+
+        Usage: macro-stop
+
+        Stops recording a macro, loads the command, and caches it for later saving if desired.
       BANNER
+    end
 
-      def setup
-        if !_pry_.instance_variable_defined?(:@record_stack) && _pry_.record_stack.empty?
-          raise 'Cannot stop recording when no recorder is running'
-        end
-
-        session_begin = _pry_.record_stack.pop
-        session_end   = Pry.history.session_line_count
-
-        # Get the history between the start and end of the recording session
-        @history = 
-          Pry.history
-             .to_a
-             .last(session_end - session_begin - 1)
-             .reduce(StringIO.new) { |io, item| io.puts(item); io }
+    def setup
+      if !_pry_.instance_variable_defined?(:@record_stack) && _pry_.record_stack.empty?
+        raise 'Cannot stop macro when macro is not start.'
       end
 
-      def options(opts)
-        opts.on :n, :name, "Name to use to define the macro",
-                           optional_argument: true, as: String
-        opts.on :d, :desc, "Description of the macro",
-                           optional_argument: true, as: String
-        opts.on :v, :verbose, "Echoes back the macro definition"
-      end
+      session_begin = _pry_.record_stack.pop
+      session_end   = Pry.history.session_line_count
 
-      def process
-        # Have to have a name to execute this later
-        name = opts[:n] || ask('Macro Name: ')
-        desc = opts[:d] || 'no description'
+      # Get the history between the start and end of the recording session
+      session_history = Pry.history.to_a.last(session_end - session_begin)[0..-2].reject! {|e| e == 'edit' }
+      @history = session_history.each_with_object(StringIO.new) {|history, io| io.puts(history) }
+    end
 
-        history_lines = @history.string.lines.map { |s| "      #{s}"}.join.chomp.tap { |h|
-          h.sub!(/^ {6}/,'') # First line won't need the spacing
-        }
+    def process
+      # Have to have a name to execute this later
+      opts = _pry_.pry_macro_options
 
-        # Save the command into a string, and make it look decent
-        # Tinge of a heredocs hack
-        command_string = <<-COMMAND_STRING.gsub(/^ {10}/, '')
+      # ppp opts.arguments.first
+      name = opts[:name]
+      desc = opts[:desc] || 'no description'
+
+      history_lines = @history.string.lines.map { |s| "      #{s}"}.join.chomp.tap { |h|
+        h.sub!(/^ {6}/, '') # First line won't need the spacing
+      }
+
+      # Save the command into a string, and make it look decent
+      # Tinge of a heredocs hack
+      command_string = <<-COMMAND_STRING.gsub(/^ {10}/, '')
           Pry::Commands.block_command '#{name}', '#{desc}' do
             _pry_.input = StringIO.new(
               <<-MACRO.gsub(/^ {4,6}/, '')
@@ -80,43 +83,44 @@ module PryMacro
           end
         COMMAND_STRING
 
-        puts command_string if opts[:v]
+      puts command_string if opts[:verbose]
 
-        # ...so that we can save the contents for saving later (optional)
-        _pry_.macro_strings << MacroString.new(name, command_string)
-        # ...as well as evaluating it and making it immediately usable to us.
-        eval command_string
-      end
+      # ...so that we can save the contents for saving later (optional)
+      _pry_.macro_strings << MacroString.new(name, command_string)
+      # ...as well as evaluating it and making it immediately usable to us.
+      eval command_string
+    end
+  end
+
+  Pry.commands.create_command 'macro-save' do
+    def options(opts)
+      opts.banner <<-BANNER
+        Save cached macro.
+
+        Usage: macro-save name
+
+        Saves a cached macro to your ~/.pry-macro.
+      BANNER
     end
 
-    create_command 'save-macro', 'Saves a named macro to your .pryrc file on the tail end' do
-      banner <<-BANNER
-        Usage: save-macro [-p path]
+    def process
+      raise 'No Macros are defined!' unless _pry_.instance_variable_defined?(:@macro_strings)
+      raise Pry::CommandError, "The command '#{command_name}' must specify a macro name to execute later!" if args.empty?
 
-        Saves a cached macro to your ~/.pryrc or the path specified.
-      BANNER
+      path  = Dir.home
+      macro = _pry_.macro_strings.find(
+        # If nothing is found, raise the error
+        -> { raise "Command #{args.first} not found!" }
+      ) { |m| m.name == args.first }
 
-      def options(opts)
-        opts.on :p, :path, "Pathname to save macro in",
-                           optional_argument: true, as: String
+      dot_pryrc = File.readlines("#{Dir.home}/.pryrc")
+
+      if dot_pryrc.grep(%r{^\s*load \"\#\{Dir.home\}/\.pry-macro\"}).empty?
+        File.open(File.join(path, '.pryrc'), 'a') { |f| f.puts '', 'load "#{Dir.home}/.pry-macro"' }
       end
 
-      def process
-        raise 'No Macros are defined!' unless _pry_.instance_variable_defined?(:@macro_strings)
-        raise 'Invalid path!' if opts[:p] && !Dir[opts[:p]]
-        raise 'Must specify the macro to save!' if args.empty?
-
-        path  = opts[:p] || Dir.home
-        macro = _pry_.macro_strings.find(
-          # If nothing is found, raise the error
-          -> { raise "Command #{args.first} not found!" }
-        ) { |m| m.name == args.first }
-
-        # Append the Pryrc with the macro, leaving blank lines
-        File.open(File.join(path, '.pryrc'), 'a') { |f| f.puts '', macro.command, '' }
-      end
+      # Append new macro to ~/.pry-macro
+      File.open(File.join(path, '.pry-macro'), 'a') { |f| f.puts '', macro.command }
     end
   end
 end
-
-Pry.commands.import PryMacro::Commands

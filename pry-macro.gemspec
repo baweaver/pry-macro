@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "pry-macro"
   spec.version       = PryMacro::VERSION
   spec.authors       = ["Brandon Weaver"]
-  spec.email         = ["keystonelemur@gmail.com"]
+  spec.email         = ["keystonelemur@gmail.com", 'vil963@gmail.com']
   spec.summary       = %q{Macros for Pry}
   spec.description   = %q{Macro Recording and Saving functionality for pry}
   spec.homepage      = "https://github.com/baweaver/pry-macro"
@@ -25,5 +25,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
 
   spec.add_runtime_dependency "pry"
-  spec.add_runtime_dependency 'highline'
 end
