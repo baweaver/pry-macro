@@ -1,5 +1,7 @@
 # PryMacro
 
+2.0 is released!, please see [CHANGELOG](https://github.com/zw963/pry-macro)
+
 Record command line actions for replaying.
 
 ## How is this different from play and history?
@@ -9,10 +11,10 @@ later, as well as use pry commands.
 
 ## Basic Usage
 
-Start recording:
+Start recording, you need provide a macro name.
 
 ```ruby
-[1] pry(main)> record-macro
+[1] pry(main)> macro-start testing
 [2] pry(main)> 1
 => 1
 [3] pry(main)> 'foo'
@@ -22,11 +24,10 @@ self.methods: inspect  to_s
 locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
 ```
 
-Stop the recording and name it:
+Stop the recording:
 
 ```ruby
-[5] pry(main)> stop-macro
-Macro Name: testing
+[5] pry(main)> macro-stop
 ```
 
 Run it like any other command:
@@ -39,15 +40,16 @@ self.methods: inspect  to_s
 locals: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
 ```
 
-Like it? You can save it and have it automatically append to your PryRC:
+Like it? You can save it to ~/.pry-macro, and will load automatically when next run pry!
 
 ```ruby
-[10] pry(main)> save-macro testing
+[10] pry(main)> macro-save testing
 ```
 
 ...and here it is, nice and formatted:
 
 ```ruby
+╰─ $ cat ~/.pry-macro
 Pry::Commands.block_command 'testing', 'no description' do
   _pry_.input = StringIO.new(
     <<-MACRO.gsub(/^ {4,6}/, '')
@@ -60,6 +62,8 @@ end
 ```
 
 ## More Advanced Usage
+
+When recording macro, you can run `edit` command in any time to write macro use you favorited editor!
 
 We're working on getting the Wiki up to date to cover more advanced usage.
 
