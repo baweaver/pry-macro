@@ -5,11 +5,11 @@ module PryMacro
   MacroString = Struct.new(:name, :command)
 
   Pry::Commands.create_command 'macro-start' do
+    description 'Starts recording a macro.'
+
     def options(opts)
       opts.banner <<-BANNER
-      Starts recording a macro.
-
-      Usage: macro-start name [-d desc], [-v]
+      Usage: #{command_name}111 name [-d desc], [-v]
 
       Starts recording a macro, have to provide a macro name to be execute as command later.
       Descriptions may be provided, but will default to 'no description'.
@@ -36,13 +36,13 @@ module PryMacro
   end
 
   Pry.commands.create_command 'macro-stop' do
+    description 'Stops recording macro.'
+
     def options(opts)
       opts.banner <<-BANNER
-        Stops recording macro.
+      Usage: #{command_name}
 
-        Usage: macro-stop
-
-        Stops recording a macro, loads the command, and caches it for later saving if desired.
+      Stops recording a macro, loads the command, and caches it for later saving if desired.
       BANNER
     end
 
@@ -55,7 +55,7 @@ module PryMacro
       session_end   = Pry.history.session_line_count
 
       # Get the history between the start and end of the recording session
-      session_history = Pry.history.to_a.last(session_end - session_begin)[0..-2].reject! {|e| e == 'edit' }
+      session_history = Pry.history.to_a.last(session_end - session_begin)[0..-2].reject {|e| e == 'edit' }
       @history = session_history.each_with_object(StringIO.new) {|history, io| io.puts(history) }
     end
 
@@ -63,7 +63,6 @@ module PryMacro
       # Have to have a name to execute this later
       opts = _pry_.pry_macro_options
 
-      # ppp opts.arguments.first
       name = opts[:name]
       desc = opts[:desc] || 'no description'
 
@@ -83,7 +82,7 @@ module PryMacro
           end
         COMMAND_STRING
 
-      puts command_string if opts[:verbose]
+      output.puts command_string if opts[:verbose]
 
       # ...so that we can save the contents for saving later (optional)
       _pry_.macro_strings << MacroString.new(name, command_string)
@@ -93,13 +92,13 @@ module PryMacro
   end
 
   Pry.commands.create_command 'macro-save' do
+    description 'Save cached macro.'
+
     def options(opts)
       opts.banner <<-BANNER
-        Save cached macro.
+      Usage: #{command_name} name
 
-        Usage: macro-save name
-
-        Saves a cached macro to your ~/.pry-macro.
+      Saves a cached macro to your ~/.pry-macro.
       BANNER
     end
 
