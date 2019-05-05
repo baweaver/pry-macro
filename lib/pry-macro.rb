@@ -8,7 +8,7 @@ module PryMacro
     description 'Starts recording a macro.'
 
     def options(opts)
-      opts.banner <<-BANNER
+      opts.banner <<~BANNER
       Usage: #{command_name} name [-d desc], [-v]
 
       Starts recording a macro, have to provide a macro name to be execute as command later.
@@ -39,7 +39,7 @@ module PryMacro
     description 'Stops recording macro.'
 
     def options(opts)
-      opts.banner <<-BANNER
+      opts.banner <<~BANNER
       Usage: #{command_name}
 
       Stops recording a macro, loads the command, and caches it for later saving if desired.
@@ -48,7 +48,7 @@ module PryMacro
 
     def setup
       if !_pry_.instance_variable_defined?(:@record_stack) && _pry_.record_stack.empty?
-        raise 'Cannot stop macro when macro is not start.'
+        raise 'Cannot stop recording a macro when no macro is recording.'
       end
 
       session_begin = _pry_.record_stack.pop
@@ -72,10 +72,10 @@ module PryMacro
 
       # Save the command into a string, and make it look decent
       # Tinge of a heredocs hack
-      command_string = <<-COMMAND_STRING.gsub(/^ {10}/, '')
+      command_string = <<~COMMAND_STRING
           Pry::Commands.block_command '#{name}', '#{desc}' do
             _pry_.input = StringIO.new(
-              <<-MACRO.gsub(/^ {4,6}/, '')
+              <<-MACRO
                 #{history_lines}
               MACRO
             )
@@ -95,7 +95,7 @@ module PryMacro
     description 'Save cached macro.'
 
     def options(opts)
-      opts.banner <<-BANNER
+      opts.banner <<~BANNER
       Usage: #{command_name} name
 
       Saves a cached macro to your ~/.pry-macro.
