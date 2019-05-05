@@ -9,7 +9,7 @@ module PryMacro
 
     def options(opts)
       opts.banner <<-BANNER
-      Usage: #{command_name}111 name [-d desc], [-v]
+      Usage: #{command_name} name [-d desc], [-v]
 
       Starts recording a macro, have to provide a macro name to be execute as command later.
       Descriptions may be provided, but will default to 'no description'.
